@@ -8,7 +8,9 @@ module tt_um_dff_mem_eshaanmehta #(
     output reg [7:0] data_out,   // Data output
     input wire ce_n,             // Active-low Chip Enable signal (RAM drives the bus)
     input wire lr_n,             // Active-low Load RAM signal (RAM loads from MAR)
-    input wire clk               // Clock signal
+    input wire clk,               // Clock signal
+    input wire ena,      // will go high when the design is enabled
+    input wire rst_n,     // reset_n - low to reset
 );
     localparam addr_bits = 4;
  
