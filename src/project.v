@@ -16,6 +16,29 @@ module tt_um_dff_mem_eshaanmehta #(
   wire [3:0] addr = ui_in[3:0];
   wire ce_n = ui_in[7];
   wire lr_n = ui_in[6];
+  
+
+  // Suppressing unused signal warnings for bits [5:4] of ui_in
+  /* verilator lint_off UNUSEDSIGNAL */
+  wire unused_bits = ui_in[5:4];
+  /* verilator lint_on UNUSEDSIGNAL */
+
+  // Suppressing unused and undriven warnings for uo_out
+  /* verilator lint_off UNDRIVEN */
+  output reg [7:0] uo_out;
+  /* verilator lint_on UNDRIVEN */
+
+  // Suppressing unused and undriven warnings for uio_oe
+  /* verilator lint_off UNDRIVEN */
+  assign uio_oe = 8'b0; // Default assignment to avoid undriven warning
+  /* verilator lint_on UNDRIVEN */
+
+  // Suppressing unused signal warnings for ena and rst_n
+  /* verilator lint_off UNUSEDSIGNAL */
+  input wire ena;
+  input wire rst_n;
+  /* verilator lint_on UNUSEDSIGNAL */
+
     
   // assign uio_oe  = 8'b0;  
   // assign uio_out = 8'b0;
