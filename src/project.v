@@ -23,14 +23,14 @@ module tt_um_dff_mem_eshaanmehta #(
   wire unused_bits = ui_in[5:4];
   /* verilator lint_on UNUSEDSIGNAL */
 
+  // Since `uo_out` is not used, we'll just initialize it to avoid any undriven warnings.
+  initial begin
+      uo_out = 8'b0;
+  end
+
   // Suppressing unused and undriven warnings for uo_out
   /* verilator lint_off UNDRIVEN */
   output reg [7:0] uo_out;
-  /* verilator lint_on UNDRIVEN */
-
-  // Suppressing unused and undriven warnings for uio_oe
-  /* verilator lint_off UNDRIVEN */
-  assign uio_oe = 8'b0; // Default assignment to avoid undriven warning
   /* verilator lint_on UNDRIVEN */
 
   // Suppressing unused signal warnings for ena and rst_n
@@ -38,10 +38,6 @@ module tt_um_dff_mem_eshaanmehta #(
   input wire ena;
   input wire rst_n;
   /* verilator lint_on UNUSEDSIGNAL */
-
-    
-  // assign uio_oe  = 8'b0;  
-  // assign uio_out = 8'b0;
 
   reg [7:0] RAM[RAM_BYTES - 1:0];
 
