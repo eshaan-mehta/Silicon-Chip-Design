@@ -1,6 +1,6 @@
 `default_nettype none
  
-module tt_um_dff_mem #(
+module tt_um_dff_mem_eshaanmehta #(
     parameter RAM_BYTES = 16
 ) (
     input wire [3:0] mar,        // Adress from RAM - 4-bit for 16-byte RAM
