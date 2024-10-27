@@ -4,7 +4,7 @@ module tt_um_dff_mem_eshaanmehta #(
     parameter RAM_BYTES = 16
 ) (
     input  wire [7:0] ui_in,    // Dedicated inputs - address
-    // Removing uo_out if not used; if you plan to use it later, you can reintroduce it properly
+    output reg  [7:0] uo_out,   // Dedicated outputs - explicitly declared
     input  wire [7:0] uio_in,   // IOs: write data
     output reg [7:0] uio_out,   // IOs: read data
     output wire [7:0] uio_oe,   // IOs: Bidirectional Enable path (active high: 0=input, 1=output), not used
@@ -43,6 +43,8 @@ module tt_um_dff_mem_eshaanmehta #(
             // Case 2: read from RAM
             if (!ce_n) begin
                 uio_out <= RAM[addr];
+                // Driving uo_out based on read data or some other logic
+                uo_out <= RAM[addr]; // Assigning the same value for now; adjust as needed
             end
         end
     end
