@@ -37,8 +37,8 @@ module tb ();
       .rst_n  (rst_n)     // Reset (active low)
   );
 
-  // Clock generation
-  always #5 clk = ~clk;  // 100 MHz clock
+  // Clock generation: 100 MHz clock (period = 10 ns)
+  always #5 clk = ~clk;  
 
   // Apply reset and stimulus
   initial begin
@@ -61,6 +61,8 @@ module tb ();
 
     #10;
     ui_in = 8'b11000001; // Address 0x01, read mode (lr_n = 1, ce_n = 0)
+
+    // Wait for a clock cycle to read
     #10;
     
     // Test Case: Verify the data
