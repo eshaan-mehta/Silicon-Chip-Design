@@ -1,16 +1,14 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-/* This testbench just instantiates the module and makes some convenient wires
-   that can be driven / tested by the cocotb test.py.
-*/
 module tb ();
 
   // Dump the signals to a VCD file. You can view it with gtkwave.
   initial begin
     $dumpfile("tb.vcd");
     $dumpvars(0, tb);
-    #1;
+    #100000;  // Run simulation for 100us
+    $finish;
   end
 
   // Wire up the inputs and outputs:
@@ -23,23 +21,57 @@ module tb ();
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
 
-  // Replace tt_um_example with your module name:
+  // Instantiate the user project module
   tt_um_dff_mem_eshaanmehta user_project(
-
-      // Include power ports for the Gate Level test:
 `ifdef GL_TEST
       .VPWR(1'b1),
       .VGND(1'b0),
 `endif
-
-      .ui_in  (ui_in),    // Dedicated inputs
-      .uo_out (uo_out),   // Dedicated outputs
-      .uio_in (uio_in),   // IOs: Input path
-      .uio_out(uio_out),  // IOs: Output path
-      .uio_oe (uio_oe),   // IOs: Enable path (active high: 0=input, 1=output)
-      .ena    (ena),      // enable - goes high when design is selected
-      .clk    (clk),      // clock
-      .rst_n  (rst_n)     // not reset
+      .ui_in  (ui_in),    // Address and control inputs
+      .uo_out (uo_out),   // Read output
+      .uio_in (uio_in),   // Write data input
+      .uio_out(uio_out),  // Read data output
+      .uio_oe (uio_oe),   // Not used, bidirectional enable
+      .ena    (ena),      // Enable design
+      .clk    (clk),      // Clock
+      .rst_n  (rst_n)     // Reset (active low)
   );
+
+  // Clock generation
+  always #5 clk = ~clk;  // 100 MHz clock
+
+  // Apply reset and stimulus
+  initial begin
+    // Initialize all inputs
+    clk = 0;
+    rst_n = 0;
+    ena = 0;
+    ui_in = 8'b0;
+    uio_in = 8'b0;
+
+    // Apply reset
+    #20;
+    rst_n = 1;  // Release reset
+    ena = 1;    // Enable design
+
+    // Test Case: Write to RAM
+    #10;
+    ui_in = 8'b01000001; // Address 0x01, write mode (lr_n = 0, ce_n = 1)
+    uio_in = 8'hAA;      // Write 0xAA to RAM[0x01]
+
+    #10;
+    ui_in = 8'b11000001; // Address 0x01, read mode (lr_n = 1, ce_n = 0)
+    #10;
+    
+    // Test Case: Verify the data
+    if (uio_out !== 8'hAA || uo_out !== 8'hAA) begin
+      $display("Test failed! Expected 0xAA, but got uio_out=%h, uo_out=%h", uio_out, uo_out);
+    end else begin
+      $display("Test passed! Read data correctly.");
+    end
+
+    #10;
+    $finish;
+  end
 
 endmodule
