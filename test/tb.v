@@ -3,7 +3,7 @@
 
 module tb ();
 
-  // Dump the signals to a VCD file. You can view it with gtkwave.
+  // Dump the signals to a VCD file for waveform viewing (e.g., in GTKWave)
   initial begin
     $dumpfile("tb.vcd");
     $dumpvars(0, tb);
@@ -38,7 +38,7 @@ module tb ();
   );
 
   // Clock generation: 100 MHz clock (period = 10 ns)
-  always #5 clk = ~clk;  
+  always #5 clk = ~clk;
 
   // Apply reset and stimulus
   initial begin
@@ -49,27 +49,33 @@ module tb ();
     ui_in = 8'b0;
     uio_in = 8'b0;
 
-    // Apply reset
+    // Apply reset and hold it for a few clock cycles
     #20;
     rst_n = 1;  // Release reset
     ena = 1;    // Enable design
+    $display("Reset released, design enabled");
 
-    // Test Case: Write to RAM
+    // Test Case: Write to RAM at Address 0x01
     #10;
-    ui_in = 8'b01000001; // Address 0x01, write mode (lr_n = 0, ce_n = 1)
-    uio_in = 8'hAA;      // Write 0xAA to RAM[0x01]
+    ui_in = 8'b01000001;  // Address 0x01, write mode (lr_n = 0, ce_n = 1)
+    uio_in = 8'hAA;       // Write 0xAA to RAM[0x01]
+    $display("Writing 0xAA to RAM at address 0x01");
 
-    #10;
-    ui_in = 8'b11000001; // Address 0x01, read mode (lr_n = 1, ce_n = 0)
+    // Wait for write to complete
+    #20;
+
+    // Test Case: Read from RAM at Address 0x01
+    ui_in = 8'b11000001;  // Address 0x01, read mode (lr_n = 1, ce_n = 0)
+    $display("Reading from RAM at address 0x01");
 
     // Wait for a clock cycle to read
-    #10;
+    #20;
     
     // Test Case: Verify the data
     if (uio_out !== 8'hAA || uo_out !== 8'hAA) begin
       $display("Test failed! Expected 0xAA, but got uio_out=%h, uo_out=%h", uio_out, uo_out);
     end else begin
-      $display("Test passed! Read data correctly.");
+      $display("Test passed! Read data correctly: uio_out=%h, uo_out=%h", uio_out, uo_out);
     end
 
     #10;
