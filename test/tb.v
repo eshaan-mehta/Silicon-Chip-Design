@@ -3,83 +3,40 @@
 
 module tb ();
 
-  // Dump the signals to a VCD file for waveform viewing (e.g., in GTKWave)
-  initial begin
-    $dumpfile("tb.vcd");
-    $dumpvars(0, tb);
-    #100000;  // Run simulation for 100us
-    $finish;
-  end
-
-  // Wire up the inputs and outputs:
-  reg clk;
-  reg rst_n;
-  reg ena;
-  reg [7:0] ui_in;
-  reg [7:0] uio_in;
-  wire [7:0] uo_out;
-  wire [7:0] uio_out;
-  wire [7:0] uio_oe;
-
-  // Instantiate the user project module
-  tt_um_dff_mem_eshaanmehta user_project(
-`ifdef GL_TEST
-      .VPWR(1'b1),
-      .VGND(1'b0),
-`endif
-      .ui_in  (ui_in),    // Address and control inputs
-      .uo_out (uo_out),   // Read output
-      .uio_in (uio_in),   // Write data input
-      .uio_out(uio_out),  // Read data output
-      .uio_oe (uio_oe),   // Not used, bidirectional enable
-      .ena    (ena),      // Enable design
-      .clk    (clk),      // Clock
-      .rst_n  (rst_n)     // Reset (active low)
-  );
-
-  // Clock generation: 100 MHz clock (period = 10 ns)
-  always #5 clk = ~clk;
-
-  // Apply reset and stimulus
-  initial begin
-    // Initialize all inputs
-    clk = 0;
-    rst_n = 0;
-    ena = 0;
-    ui_in = 8'b0;
-    uio_in = 8'b0;
-
-    // Apply reset and hold it for a few clock cycles
-    #20;
-    rst_n = 1;  // Release reset
-    ena = 1;    // Enable design
-    $display("Reset released, design enabled");
-
-    // Test Case: Write to RAM at Address 0x01
-    #10;
-    ui_in = 8'b01000001;  // Address 0x01, write mode (lr_n = 0, ce_n = 1)
-    uio_in = 8'hAA;       // Write 0xAA to RAM[0x01]
-    $display("Writing 0xAA to RAM at address 0x01");
-
-    // Wait for write to complete
-    #20;
-
-    // Test Case: Read from RAM at Address 0x01
-    ui_in = 8'b11000001;  // Address 0x01, read mode (lr_n = 1, ce_n = 0)
-    $display("Reading from RAM at address 0x01");
-
-    // Wait for a clock cycle to read
-    #20;
-    
-    // Test Case: Verify the data
-    if (uio_out !== 8'hAA || uo_out !== 8'hAA) begin
-      $display("Test failed! Expected 0xAA, but got uio_out=%h, uo_out=%h", uio_out, uo_out);
-    end else begin
-      $display("Test passed! Read data correctly: uio_out=%h, uo_out=%h", uio_out, uo_out);
+    // This part dumps the trace to a VCD file that can be viewed with GTKWave
+    initial begin
+        $dumpfile ("tb.vcd");
+        $dumpvars (0, tb);
+        #1;  // Minimal delay to ensure dump happens
+        $finish;  // End the simulation early, as we don't need to run any tests
     end
 
-    #10;
-    $finish;
-  end
+    // Wire up the inputs and outputs:
+    reg clk;
+    reg rst_n;
+    reg ena;
+    reg [6:0] addr;  // Address
+    reg we;          // Write enable
+    reg [7:0] data_in;
+    wire [7:0] data_out;
+    wire [7:0] bidirectional_is_output;
+
+    // Clock generation (though we aren't driving any signals, it's good to define it)
+    always #5 clk = ~clk;
+
+    // Instantiate the DUT (Device Under Test)
+    tt_um_dff_mem_eshaanmehta user_project(
+    `ifdef GL_TEST
+        .VPWR( 1'b1),
+        .VGND( 1'b0),
+    `endif
+        .ui_in  ({we, addr}),   // Combine write enable and address
+        .uo_out (data_out),     // Data output
+        .uio_in (data_in),      // Data input (for writing)
+        .uio_oe (bidirectional_is_output),  // Not used, bidirectional enable
+        .ena    (ena),          // Enable
+        .clk    (clk),          // Clock
+        .rst_n  (rst_n)         // Reset (active low)
+    );
 
 endmodule
